@@ -2,8 +2,8 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(_name_)
+CORS(app)  # Esto permite que tu página de Netlify consulte la API sin bloqueos de seguridad
 
 def obtener_tasa_ajustada(fiat, trade_type):
     url = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -32,33 +32,32 @@ def obtener_tasa_ajustada(fiat, trade_type):
             else:
                 return 0
 
-            # Tu regla comercial: Compra +0.5%, Venta -0.5%
             if trade_type == 'BUY':
-                return round(promedio_base * 1.005, 2)
+                tasa_final = promedio_base * 1.005
             else:
-                return round(promedio_base * 0.995, 2)
+                tasa_final = promedio_base * 0.995
+                
+            return tasa_final
+            
     except Exception as e:
         print(f"Error para {fiat}: {e}")
     return 0
 
-@app.route('/api/tasas', methods=['GET'])
-def obtener_todas_las_tasas():
+@app.route('/tasas', methods=['GET'])
+def obtener_tasas():
     monedas = ['COP', 'PEN', 'CLP', 'VES']
-    resultado = {}
+    tasas_resultado = {}
     
     for fiat in monedas:
         tasa_compra = obtener_tasa_ajustada(fiat, 'BUY')
         tasa_venta = obtener_tasa_ajustada(fiat, 'SELL')
         
-        resultado[fiat] = {
-            "compra": tasa_compra,
-            "venta": tasa_venta
+        tasas_resultado[fiat] = {
+            "compraUSDT": tasa_compra,
+            "ventaVES": tasa_venta # O la referencia que estés usando para el cálculo cruzado
         }
         
-    return jsonify(resultado)
+    return jsonify(tasas_resultado)
 
-import os
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+if _name_ == "_main_":
+    app.run(host='0.0.0.0', port=5000)
